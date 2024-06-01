@@ -88,11 +88,7 @@ int main()
         Schedule(i);
         //eval_res에 저장된 값들을 출력
         printf("average turnaround time: %f, average waiting time: %f\n\n\n\n", eval_res[i].average_turn, eval_res[i].average_wait);
-    }
-        
-
-
-    
+    }    
 }
 
 void print_processes(){
@@ -151,9 +147,6 @@ void * Create_Process(){
         new -> pid = rand() % PROC_NUM + 1;
     }
 
-    //printf("new process is created\n");
-    //printf("pid: %d\ncpu_time:%d\nio_time: %d\narrival_time: %d\nio_start_time: %d\npriority: %d\n\n", new->pid, new->cpu_time, new->io_time, new->arrival_time,new ->io_start_time,new->prior);
-
     return new;
 
 }
@@ -183,29 +176,6 @@ void count_waiting() //수행 시 당시에 readyqueue에 있는 proc만 대상�
             (readyqueue[i])->waiting_time += 1;
     }
 }
-
-/*for debugging
-void print_readyqueue()
-{
-    printf("==========readyqueue======\n");
-    for(int i = 0; i<PROC_NUM; i++)
-    {
-        if(readyqueue[i])
-            printf("pid: %d\n", readyqueue[i]->pid);
-    }
-    printf("==========readyqueue======\n");
-}
-
-void print_waitqueue()
-{
-    printf("==========waitqueue======\n");
-    for(int i = 0; i<PROC_NUM; i++)
-    {
-        if(waitingqueue[i])
-            printf("pid: %d\n", waitingqueue[i]->pid);
-    }
-    printf("==========waitqueue======\n");
-}*/
 
 //큐 관리 시=> pop할 때는그 부분을 null로 바꿀 것. for문으로 null인지 아닌지 여부로 판단. 큐의 idx = pid-1임.
 void Schedule(int method){
@@ -243,7 +213,6 @@ void Schedule(int method){
                     if(running == readyqueue[i])
                         running = NULL;
                     readyqueue[i] = NULL;
-                    
                 }
             }
         }
@@ -313,12 +282,9 @@ void Schedule(int method){
                 io_running = NULL;
             }
         }
-        
     }
     print_Gantt(time);
     Evaluation(method);
-
-
 }
 
 
@@ -572,8 +538,7 @@ process * algo(int method, process * prev_running){
             break;
         case PRE_PRIOR:
             running = pre_Prior();   
-            break; 
-        
+            break;      
         default:
             break;
     }
@@ -596,7 +561,6 @@ void Evaluation(int method){
 
     eval_res[method].average_turn = turnaround / (float)PROC_NUM;
     eval_res[method].average_wait = waiting / (float)PROC_NUM;
-
 }
 
 char Gantt_top[0x100];
@@ -618,7 +582,6 @@ void init_Gantt()
     strcat(Gantt_time, "0");
 
     history = NULL;
-
 }
 
 
@@ -668,7 +631,6 @@ void make_Gantt(process * running, int time){
             strcat(Gantt_top, "=");
             strcat(Gantt_bottom, "=");
         }
-        
     }
 
     strcat(Gantt_top, "=");
@@ -676,7 +638,6 @@ void make_Gantt(process * running, int time){
     strcat(Gantt_bottom, "=");
 
     history = running;
-
 }
 
 void print_Gantt(int time){
