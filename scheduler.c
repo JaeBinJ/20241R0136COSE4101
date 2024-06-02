@@ -3,7 +3,7 @@
 #include <time.h> 
 #include <string.h>
 
-#define PROC_NUM 3
+#define PROC_NUM 6
 
 #define FCFS 0
 #define SJF 1
@@ -18,7 +18,7 @@ typedef struct {
     int cpu_time;
     int io_time; //io요청 후 기다리는 시간
     int arrival_time;
-    int io_start_time; //io작업이 시작되는 시간
+    int io_start_time; //io작업이 시작되는 시간(cpu_burst_time 2초 진행 후로 고정)
     int prior;
     int cpu_remain_time; //for update
     int io_remain_time; //for update
@@ -87,13 +87,13 @@ int main()
         }
         Schedule(i);
         //eval_res에 저장된 값들을 출력
-        printf("average turnaround time: %f, average waiting time: %f\n\n\n\n", eval_res[i].average_turn, eval_res[i].average_wait);
+        printf("average turnaround time: %f, average waiting time: %f\n\n\n\n", eval_res[i].average_turn, eval_res[i].average_wait);    
     }    
 }
 
 void print_processes(){
     printf("\n<processes>\n");
-    printf("====================================\n");
+    printf("=====================================================================\n");
     printf("pid           | ");
     for(int i=0; i<PROC_NUM; i++)
         printf("%d\t", processes[i]->pid);
@@ -106,20 +106,17 @@ void print_processes(){
     printf("\narrival time  |");
     for(int i=0; i<PROC_NUM; i++)
         printf("%d\t", processes[i]->arrival_time);
-    printf("\nio start time |");  
-    for(int i=0; i<PROC_NUM; i++)
-        printf("%d\t", processes[i]->io_start_time);
     printf("\npriority      |");   
     for(int i=0; i<PROC_NUM; i++)
         printf("%d\t", processes[i]->prior);
-    printf("\n====================================\n\n\n");
+    printf("\n=====================================================================\n\n\n");
 }
 
 void * Create_Process(){
     //실행할 프로세스를 생성, 각 프로세스에 랜덤 데이터 생성
     //pid = 1 ~ 
     //CPU burst: 5 ~ 20
-    //IO burst: 0 ~ 10
+    //IO burst: 1 ~ 10
     //arival time : 0~PROC_NUM 
     //io_start_time: arrival 2만큼 후로 고정 (그렇지 않으면 arrivaltime보다 먼저iostart가 되는 경우가 발생)
     //priority : 1 ~ PROC_NUM
@@ -129,9 +126,9 @@ void * Create_Process(){
 
     new->pid = rand() % PROC_NUM + 1;
     new->cpu_time = (rand() % 16) + 5 ;
-    new->io_time = rand() % 11;
+    new->io_time = rand() % 10+1;
     new->arrival_time = rand() % (PROC_NUM+1);
-    new->io_start_time = new->arrival_time + 2;
+    new->io_start_time = 2;
     new->prior = (rand() % PROC_NUM) + 1;
     new->cpu_remain_time = new->cpu_time;
     new->io_remain_time = new->io_time;
@@ -168,11 +165,11 @@ void Config(){
     }
 }
 
-void count_waiting() //수행 시 당시에 readyqueue에 있는 proc만 대상으로 waitingtime을 1증가시킨다
+void count_waiting(process *running) //수행 시 당시에 readyqueue에 있는 proc만 대상으로 waitingtime을 1증가시킨다
 {
     for(int i = 0; i< PROC_NUM; i++)
     {
-        if (readyqueue[i])
+        if (readyqueue[i] && (readyqueue[i]->pid != running->pid)) //현재 실행 중인 프로세스는 제외
             (readyqueue[i])->waiting_time += 1;
     }
 }
@@ -203,19 +200,17 @@ void Schedule(int method){
                 readyqueue[processes[i]->pid - 1] = processes[i];
         }
 
-        //io 시작 시간에 도달한 proc을 ready queue에서 iowaitingqueue로 옮기기
-        for (int i = 0; i < PROC_NUM; i++){
-            if(readyqueue[i])
+        //io 시작 시간에 도달한 proc(실행 2s가 지난 proc)을 ready queue에서 iowaitingqueue로 옮기기
+        if(running)
+        {
+            if(running->cpu_time - running->cpu_remain_time == 2)
             {
-                if(readyqueue[i]->io_start_time == time)
-                {
-                    waitingqueue[readyqueue[i]->pid - 1] = readyqueue[i];
-                    if(running == readyqueue[i])
-                        running = NULL;
-                    readyqueue[i] = NULL;
-                }
+                waitingqueue[running->pid-1] = running;
+                readyqueue[running->pid - 1] = NULL;
+                running = NULL;
             }
         }
+
 
         //ready queue에서 현재 수행할 proc정하기 => ready queue안에서 결정
         //여기에서 알고리즘을 도입 => 만약 없을 땐 null
@@ -241,7 +236,7 @@ void Schedule(int method){
         time += 1;
 
         //ready queue에 있는 p들 대상으로만 waiting time 증가시키기
-        count_waiting();
+        count_waiting(running);
 
         //실행중인 proc의 remaining time 1 감소
         if(running)
