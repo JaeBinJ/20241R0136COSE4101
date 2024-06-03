@@ -3,7 +3,7 @@
 #include <time.h> 
 #include <string.h>
 
-#define PROC_NUM 6
+#define PROC_NUM 7
 
 #define FCFS 0
 #define SJF 1
@@ -194,7 +194,7 @@ void Schedule(int method){
 
 
         //현재 타임에 실행이 가능하다면 ready queue로 옮기기
-        for (int i=0; i < PROC_NUM; i++) //arrive proc을 일단 waiting queue에 넣기
+        for (int i=0; i < PROC_NUM; i++) //arrive proc을 일단 ready queue에 넣기
         {
             if(processes[i]->arrival_time == time) 
                 readyqueue[processes[i]->pid - 1] = processes[i];
@@ -210,7 +210,6 @@ void Schedule(int method){
                 running = NULL;
             }
         }
-
 
         //ready queue에서 현재 수행할 proc정하기 => ready queue안에서 결정
         //여기에서 알고리즘을 도입 => 만약 없을 땐 null
@@ -262,7 +261,6 @@ void Schedule(int method){
                     running = NULL;
                 }
             }
-
         }
 
         //io처리 중인 proc의 io remaining time 1 감소
@@ -304,7 +302,7 @@ process *fcfs(process* prev_running) //prev=>nonpreemptive를 위해 도입
         }
     }
 
-    if(running == NULL)
+    if(running == NULL) //위의 for문을 다 돌았는데 running이 null이라면 레디큐에 프로세스가 아예 없다는 것이므로 바로 null 반환
         return NULL;
 
     for(i = i+1; i<PROC_NUM; i++)
@@ -443,7 +441,7 @@ process * rr(process * prev_running)
 
 process *srtf()
 {
-    //ready큐 안에 존재하는 proc중 arrive time이 가장 작은 proc반환
+    //ready큐 안에 존재하는 proc중 remain time이 가장 작은 proc반환
     //실행가능한 것이 없다면 null반환
     int i;
     int min;
