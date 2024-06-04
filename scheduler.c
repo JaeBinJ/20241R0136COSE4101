@@ -3,7 +3,7 @@
 #include <time.h> 
 #include <string.h>
 
-#define PROC_NUM 7
+#define PROC_NUM 6
 
 #define FCFS 0
 #define SJF 1
@@ -116,7 +116,7 @@ void * Create_Process(){
     //실행할 프로세스를 생성, 각 프로세스에 랜덤 데이터 생성
     //pid = 1 ~ 
     //CPU burst: 5 ~ 20
-    //IO burst: 1 ~ 10
+    //IO burst: 1 ~ 5
     //arival time : 0~PROC_NUM 
     //io_start_time: arrival 2만큼 후로 고정 (그렇지 않으면 arrivaltime보다 먼저iostart가 되는 경우가 발생)
     //priority : 1 ~ PROC_NUM
@@ -126,7 +126,7 @@ void * Create_Process(){
 
     new->pid = rand() % PROC_NUM + 1;
     new->cpu_time = (rand() % 16) + 5 ;
-    new->io_time = rand() % 10+1;
+    new->io_time = rand() % 5+1;
     new->arrival_time = rand() % (PROC_NUM+1);
     new->io_start_time = 2;
     new->prior = (rand() % PROC_NUM) + 1;
@@ -270,6 +270,8 @@ void Schedule(int method){
             if(io_running->io_remain_time <= 0) //complete여부 확인
             {
                 //complete라면 ready큐로 옮기기
+                if(method == RR)
+                    io_running->new_arrive_time = time; //for rr, 다시 reday큐로 들어가는 프로세스에 대해 new arrive time을 갱신
                 readyqueue[io_running->pid - 1] = io_running;
                 waitingqueue[io_running->pid -1] = NULL;
                 io_running = NULL;
